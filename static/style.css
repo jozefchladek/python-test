@@ -1,0 +1,36 @@
+/* Custom styles for Footgolfisti */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Score colors */
+.score-eagle { background-color: #d1fae5; color: #065f46; }
+.score-birdie { background-color: #dcfce7; color: #166534; }
+.score-par { background-color: #f3f4f6; color: #374151; }
+.score-bogey { background-color: #ffedd5; color: #9a3412; }
+.score-double { background-color: #fee2e2; color: #991b1b; }
+.score-triple { background-color: #fecaca; color: #7f1d1d; }
+
+/* Invite code styling */
+.invite-code {
+    letter-spacing: 0.3em;
+    font-family: 'Courier New', monospace;
+}
+
+/* Mobile-friendly touch targets */
+.touch-target {
+    min-height: 44px;
+    min-width: 44px;
+}
+
+/* Scorecard table */
+.scorecard-table td,
+.scorecard-table th {
+    min-width: 40px;
+    text-align: center;
+}

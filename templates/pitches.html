@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Ihriská{% endblock %}
+{% block content %}
+<div class="fade-in space-y-6">
+    <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold text-gray-800">⛳ Ihriská</h1>
+        <a href="/pitches/create" class="bg-brand-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-brand-700 transition">
+            + Nové
+        </a>
+    </div>
+
+    {% if pitches %}
+    <div class="space-y-3">
+        {% for pitch in pitches %}
+        <a href="/pitches/{{ pitch.id }}" class="block bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:border-brand-300 transition">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="font-semibold text-gray-800">{{ pitch.name }}</div>
+                    {% if pitch.location %}
+                    <div class="text-xs text-gray-500 mt-1">📍 {{ pitch.location }}</div>
+                    {% endif %}
+                    <div class="text-xs text-gray-400 mt-1">
+                        {{ pitch.num_holes }} jamiek · Par {{ pitch.holes|sum(attribute='par') }}
+                    </div>
+                </div>
+                <div class="text-gray-300 text-lg">→</div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-12">
+        <div class="text-4xl mb-3">🏗️</div>
+        <p class="text-gray-500">Zatiaľ žiadne ihriská.</p>
+        <p class="text-gray-400 text-sm mt-1">Vytvor prvé ihrisko a začni hrať!</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

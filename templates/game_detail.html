@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Plánovaná hra{% endblock %}
+{% block content %}
+<div class="fade-in space-y-6">
+    <div>
+        <a href="/" class="text-brand-600 text-sm font-medium">← Prehľad</a>
+        <h1 class="text-2xl font-bold text-gray-800 mt-2">📅 Plánovaná hra</h1>
+    </div>
+
+    <!-- Game Info -->
+    <div class="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 space-y-3">
+        <div class="flex items-center gap-2">
+            <span class="text-lg">⛳</span>
+            <span class="font-semibold text-gray-800 text-lg">{{ game.pitch.name }}</span>
+        </div>
+        <div class="flex items-center gap-2 text-gray-600">
+            <span>📅</span>
+            <span class="font-medium">{{ game.planned_date.strftime('%d.%m.%Y o %H:%M') }}</span>
+        </div>
+        {% if game.pitch.location %}
+        <div class="flex items-center gap-2 text-gray-600">
+            <span>📍</span>
+            <span>{{ game.pitch.location }}</span>
+        </div>
+        {% endif %}
+        {% if game.note %}
+        <div class="flex items-start gap-2 text-gray-600">
+            <span>📝</span>
+            <span>{{ game.note }}</span>
+        </div>
+        {% endif %}
+        <div class="flex items-center gap-2 text-gray-500 text-sm">
+            <span>👑</span>
+            <span>Organizuje: {{ game.creator.display_name }}</span>
+        </div>
+
+        {% if game.status == 'planned' %}
+        <span class="inline-block bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full">📅 Naplánovaná</span>
+        {% elif game.status == 'started' %}
+        <span class="inline-block bg-green-100 text-green-700 text-xs font-semibold px-3 py-1 rounded-full">▶️ Začatá</span>
+        {% elif game.status == 'cancelled' %}
+        <span class="inline-block bg-red-100 text-red-700 text-xs font-semibold px-3 py-1 rounded-full">❌ Zrušená</span>
+        {% endif %}
+    </div>
+
+    <!-- Google Calendar -->
+    <a href="{{ gcal_url }}" target="_blank"
+        class="block w-full bg-white text-gray-700 py-3 rounded-xl font-semibold border border-gray-200 hover:bg-gray-50 transition text-center touch-target">
+        📅 Pridať do Google Calendar
+    </a>
+
+    <!-- Invited Players -->
+    {% if game.invitations %}
+    <div>
+        <h2 class="text-lg font-bold text-gray-800 mb-3">🤝 Pozvaní hráči</h2>
+        <div class="space-y-2">
+            {% for inv in game.invitations %}
+            <div class="bg-white rounded-2xl p-3 shadow-sm border border-gray-100 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="text-lg">🏌️</span>
+                    <div>
+                        {% if inv.user %}
+                        <div class="font-medium text-gray-800">{{ inv.user.display_name }}</div>
+                        {% endif %}
+                        {% if inv.email %}
+                        <div class="text-xs text-gray-500">{{ inv.email }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="text-xs">
+                    {% if inv.sent %}
+                    <span class="text-green-600">📧 Odoslaný</span>
+                    {% elif inv.email %}
+                    <span class="text-gray-400">📧 Neodoslaný</span>
+                    {% else %}
+                    <span class="text-gray-400">Bez e-mailu</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Actions (creator only) -->
+    {% if user.id == game.created_by_id and game.status == 'planned' %}
+    <div class="space-y-3">
+        <form method="post" action="/games/{{ game.id }}/start">
+            <button type="submit"
+                class="w-full bg-brand-600 text-white py-3 rounded-xl font-semibold hover:bg-brand-700 transition touch-target">
+                ▶️ Začať hru teraz
+            </button>
+        </form>
+        <form method="post" action="/games/{{ game.id }}/cancel"
+            onsubmit="return confirm('Naozaj chceš zrušiť túto plánovanú hru?')">
+            <button type="submit"
+                class="w-full text-red-500 text-sm py-2 hover:text-red-700 transition">
+                ❌ Zrušiť plánovanú hru
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+    {% if game.session_id %}
+    <a href="/sessions/{{ game.session_id }}"
+        class="block w-full bg-brand-600 text-white py-3 rounded-xl font-semibold hover:bg-brand-700 transition text-center touch-target">
+        ▶️ Prejsť na hru
+    </a>
+    {% endif %}
+</div>
+{% endblock %}

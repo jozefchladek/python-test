@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}História{% endblock %}
+{% block content %}
+<div class="fade-in space-y-6">
+    <h1 class="text-2xl font-bold text-gray-800">📋 História hier</h1>
+
+    <!-- Filter by pitch -->
+    <div class="flex gap-2 overflow-x-auto pb-2">
+        <a href="/history"
+            class="whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition
+            {% if not selected_pitch_id %}bg-brand-600 text-white{% else %}bg-white text-gray-600 border border-gray-200{% endif %}">
+            Všetky
+        </a>
+        {% for pitch in pitches %}
+        <a href="/history?pitch_id={{ pitch.id }}"
+            class="whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition
+            {% if selected_pitch_id|string == pitch.id|string %}bg-brand-600 text-white{% else %}bg-white text-gray-600 border border-gray-200{% endif %}">
+            {{ pitch.name }}
+        </a>
+        {% endfor %}
+    </div>
+
+    {% if session_data %}
+    <div class="space-y-3">
+        {% for sd in session_data %}
+        <a href="/sessions/{{ sd.session.id }}" class="block bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:border-brand-300 transition">
+            <div class="flex items-center justify-between">
+                <div>
+                    <div class="font-semibold text-gray-800">{{ sd.session.pitch.name }}</div>
+                    <div class="text-xs text-gray-500 mt-1">{{ sd.session.started_at.strftime('%d.%m.%Y %H:%M') }}</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-xl font-bold text-gray-800">{{ sd.total }}</div>
+                    <div class="text-sm font-medium {% if sd.diff < 0 %}text-green-600{% elif sd.diff == 0 %}text-gray-500{% else %}text-red-500{% endif %}">
+                        {% if sd.diff > 0 %}+{% endif %}{{ sd.diff }}
+                    </div>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-12">
+        <div class="text-4xl mb-3">📭</div>
+        <p class="text-gray-500">Zatiaľ žiadne dokončené hry.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

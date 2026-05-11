@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Štatistiky{% endblock %}
+{% block content %}
+<div class="fade-in space-y-6">
+    <h1 class="text-2xl font-bold text-gray-800">📊 Štatistiky</h1>
+
+    <!-- Pitch selector -->
+    <div class="flex gap-2 overflow-x-auto pb-2">
+        {% for pitch in pitches %}
+        <a href="/stats?pitch_id={{ pitch.id }}"
+            class="whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition
+            {% if selected_pitch_id|string == pitch.id|string %}bg-brand-600 text-white{% else %}bg-white text-gray-600 border border-gray-200{% endif %}">
+            {{ pitch.name }}
+        </a>
+        {% endfor %}
+    </div>
+
+    {% if not selected_pitch_id %}
+    <div class="text-center py-12">
+        <div class="text-4xl mb-3">👆</div>
+        <p class="text-gray-500">Vyber ihrisko pre zobrazenie štatistík.</p>
+    </div>
+    {% elif not stats_data %}
+    <div class="text-center py-12">
+        <div class="text-4xl mb-3">📭</div>
+        <p class="text-gray-500">Zatiaľ žiadne dokončené hry na tomto ihrisku.</p>
+    </div>
+    {% else %}
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-2 gap-3">
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            <div class="text-xs text-gray-500">Počet hier</div>
+            <div class="text-2xl font-bold text-brand-600 mt-1">{{ stats_data.session_count }}</div>
+        </div>
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            <div class="text-xs text-gray-500">Priemer</div>
+            <div class="text-2xl font-bold text-brand-600 mt-1">{{ stats_data.avg_total }}</div>
+            <div class="text-xs text-gray-400">Par {{ stats_data.total_par }}</div>
+        </div>
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            <div class="text-xs text-gray-500">Najlepšie skóre 🏆</div>
+            <div class="text-2xl font-bold text-brand-600 mt-1">{{ stats_data.best.total }}</div>
+            <div class="text-xs text-gray-400">{{ stats_data.best.date }}</div>
+        </div>
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            <div class="text-xs text-gray-500">Trend 📈</div>
+            {% if stats_data.improvement is not none %}
+            <div class="text-2xl font-bold mt-1 {% if stats_data.improvement < 0 %}text-green-600{% elif stats_data.improvement == 0 %}text-gray-500{% else %}text-red-500{% endif %}">
+                {% if stats_data.improvement > 0 %}+{% endif %}{{ stats_data.improvement }}
+            </div>
+            <div class="text-xs text-gray-400">
+                {% if stats_data.improvement < 0 %}Zlepšuješ sa! 💪{% elif stats_data.improvement == 0 %}Stabilný výkon{% else %}Treba potrénovať 😅{% endif %}
+            </div>
+            {% else %}
+            <div class="text-lg text-gray-400 mt-1">-</div>
+            <div class="text-xs text-gray-400">Min. 4 hry</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Score Trend Chart -->
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+        <h2 class="text-sm font-bold text-gray-800 mb-3">📈 Vývoj skóre</h2>
+        <div style="height: 250px;">
+            <canvas id="trendChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Per-hole Analysis -->
+    <div>
+        <h2 class="text-lg font-bold text-gray-800 mb-3">⛳ Analýza podľa jamiek</h2>
+        <div class="space-y-2">
+            {% for hs in stats_data.hole_stats %}
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="font-semibold text-gray-800">Jamka {{ hs.number }}</span>
+                        <span class="text-xs text-gray-400 ml-2">Par {{ hs.par }}</span>
+                    </div>
+                    <div class="flex items-center gap-4 text-sm">
+                        <div class="text-center">
+                            <div class="text-xs text-gray-400">Priemer</div>
+                            <div class="font-bold {% if hs.avg < hs.par %}text-green-600{% elif hs.avg == hs.par %}text-gray-600{% else %}text-red-500{% endif %}">
+                                {{ hs.avg }}
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-xs text-gray-400">Najlepšie</div>
+                            <div class="font-bold text-green-600">{{ hs.best }}</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-xs text-gray-400">Najhoršie</div>
+                            <div class="font-bold text-red-500">{{ hs.worst }}</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Visual bar -->
+                {% set pct = ((hs.avg - hs.par) / hs.par * 100)|round|int %}
+                <div class="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden">
+                    {% if hs.avg <= hs.par %}
+                    <div class="h-full bg-green-400 rounded-full" style="width: {{ (hs.avg / hs.par * 100)|round|int }}%"></div>
+                    {% else %}
+                    <div class="h-full bg-red-400 rounded-full" style="width: {{ [100, (hs.avg / (hs.par + 3) * 100)|round|int]|min }}%"></div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('trendChart').getContext('2d');
+        const sessionScores = {{ stats_data.session_scores|tojson }};
+        const totalPar = {{ stats_data.total_par }};
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: sessionScores.map(s => s.date),
+                datasets: [
+                    {
+                        label: 'Skóre',
+                        data: sessionScores.map(s => s.total),
+                        borderColor: '#059669',
+                        backgroundColor: 'rgba(5, 150, 105, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 6,
+                        pointBackgroundColor: '#059669',
+                    },
+                    {
+                        label: 'Par',
+                        data: sessionScores.map(() => totalPar),
+                        borderColor: '#9ca3af',
+                        borderDash: [5, 5],
+                        pointRadius: 0,
+                        fill: false,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: { boxWidth: 12, padding: 16 }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        grid: { color: '#f3f4f6' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    });
+    </script>
+    {% endif %}
+</div>
+{% endblock %}

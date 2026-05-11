@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+{% block title %}Výsledky - {{ session.pitch.name }}{% endblock %}
+{% block content %}
+<div class="fade-in space-y-6">
+    <!-- Header -->
+    <div>
+        <a href="/history" class="text-brand-600 text-sm font-medium">← História</a>
+        <h1 class="text-2xl font-bold text-gray-800 mt-2">🏁 Výsledky</h1>
+        <p class="text-sm text-gray-500 mt-1">
+            {{ session.pitch.name }} · {{ session.started_at.strftime('%d.%m.%Y') }}
+        </p>
+    </div>
+
+    <div id="scorecard-export" class="space-y-6 bg-gray-50 -mx-4 px-4 py-4">
+    <!-- Exported header -->
+    <div class="text-center">
+        <div class="text-sm font-bold text-brand-600">⚽ Footgolfisti</div>
+        <div class="text-xs text-gray-500">{{ session.pitch.name }} · {{ session.started_at.strftime('%d.%m.%Y') }}</div>
+    </div>
+    <!-- Leaderboard -->
+    <div>
+        <h2 class="text-lg font-bold text-gray-800 mb-3">🏆 Poradie</h2>
+        <div class="space-y-2">
+            {% set ns = namespace(rankings=[]) %}
+            {% for p in session.players %}
+                {% set pt = player_totals.get(p.user_id, {}) %}
+                {% set _ = ns.rankings.append({'user': p.user, 'total': pt.get('total', 0), 'diff': pt.get('diff'), 'holes_played': pt.get('holes_played', 0)}) %}
+            {% endfor %}
+            {% for r in ns.rankings|sort(attribute='total') %}
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="text-xl">
+                        {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}.{% endif %}
+                    </span>
+                    <div>
+                        <div class="font-semibold text-gray-800">{{ r.user.display_name }}</div>
+                        <div class="text-xs text-gray-500">{{ r.holes_played }}/{{ holes|length }} jamiek</div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-xl font-bold text-gray-800">{{ r.total }}</div>
+                    {% if r.diff is not none %}
+                    <div class="text-sm font-medium {% if r.diff < 0 %}text-green-600{% elif r.diff == 0 %}text-gray-500{% else %}text-red-500{% endif %}">
+                        {% if r.diff > 0 %}+{% endif %}{{ r.diff }} (par {{ total_par }})
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Full Scorecard -->
+    <div>
+        <h2 class="text-lg font-bold text-gray-800 mb-3">📋 Skórkarta</h2>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full scorecard-table text-sm">
+                    <thead>
+                        <tr class="bg-gray-50 border-b border-gray-200">
+                            <th class="py-2 px-3 text-xs text-gray-500 font-medium text-left sticky left-0 bg-gray-50">Hráč</th>
+                            {% for hole in holes %}
+                            <th class="py-2 px-2 text-xs text-gray-500 font-medium">{{ hole.hole_number }}</th>
+                            {% endfor %}
+                            <th class="py-2 px-3 text-xs text-gray-500 font-medium bg-gray-100">Σ</th>
+                            <th class="py-2 px-3 text-xs text-gray-500 font-medium bg-gray-100">+/-</th>
+                        </tr>
+                        <!-- Par row -->
+                        <tr class="border-b border-gray-100">
+                            <td class="py-2 px-3 text-xs text-gray-400 font-medium sticky left-0 bg-white">Par</td>
+                            {% for hole in holes %}
+                            <td class="py-2 px-2 text-xs text-gray-400 text-center">{{ hole.par }}</td>
+                            {% endfor %}
+                            <td class="py-2 px-3 text-xs text-gray-400 text-center bg-gray-50">{{ total_par }}</td>
+                            <td class="py-2 px-3 text-xs text-gray-400 text-center bg-gray-50">-</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for p in session.players %}
+                        {% set p_scores = score_grid.get(p.user_id, {}) %}
+                        {% set pt = player_totals.get(p.user_id, {}) %}
+                        <tr class="border-b border-gray-50">
+                            <td class="py-2 px-3 font-medium text-gray-800 whitespace-nowrap sticky left-0 bg-white">{{ p.user.display_name }}</td>
+                            {% for hole in holes %}
+                            {% set s = p_scores.get(hole.hole_number) %}
+                            {% if s %}
+                            {% set diff = s - hole.par %}
+                            <td class="py-2 px-2 text-center font-semibold
+                                {% if diff <= -2 %}score-eagle{% elif diff == -1 %}score-birdie{% elif diff == 0 %}score-par{% elif diff == 1 %}score-bogey{% elif diff == 2 %}score-double{% else %}score-triple{% endif %}">
+                                {{ s }}
+                            </td>
+                            {% else %}
+                            <td class="py-2 px-2 text-center text-gray-300">-</td>
+                            {% endif %}
+                            {% endfor %}
+                            <td class="py-2 px-3 text-center font-bold bg-gray-50">{{ pt.get('total', '-') }}</td>
+                            <td class="py-2 px-3 text-center font-bold bg-gray-50
+                                {% if pt.get('diff') is not none %}{% if pt.diff < 0 %}text-green-600{% elif pt.diff == 0 %}text-gray-500{% else %}text-red-500{% endif %}{% endif %}">
+                                {% if pt.get('diff') is not none %}{% if pt.diff > 0 %}+{% endif %}{{ pt.diff }}{% else %}-{% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    </div><!-- end scorecard-export -->
+
+    <!-- Actions -->
+    <div class="grid grid-cols-3 gap-2">
+        <a href="/sessions/new" class="bg-brand-600 text-white py-3 rounded-xl font-semibold hover:bg-brand-700 transition text-center touch-target text-sm">
+            ▶️ Nová hra
+        </a>
+        <a href="/stats{% if session.pitch_id %}?pitch_id={{ session.pitch_id }}{% endif %}" class="bg-white text-brand-700 py-3 rounded-xl font-semibold border border-brand-200 hover:bg-gray-50 transition text-center touch-target text-sm">
+            📊 Štatistiky
+        </a>
+        <button onclick="exportScorecard()" class="bg-white text-brand-700 py-3 rounded-xl font-semibold border border-brand-200 hover:bg-gray-50 transition text-center touch-target text-sm">
+            📤 Zdieľať
+        </button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script>
+    function exportScorecard() {
+        const el = document.getElementById('scorecard-export');
+        html2canvas(el, { backgroundColor: '#f9fafb', scale: 2 }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'footgolf-{{ session.started_at.strftime("%Y%m%d") }}.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    }
+    </script>
+
+    <!-- Delete (creator only) -->
+    {% if user.id == session.created_by_id %}
+    <div x-data="{ confirmDelete: false }">
+        <button @click="confirmDelete = true" x-show="!confirmDelete"
+            class="w-full text-red-500 text-sm py-2 hover:text-red-700 transition">
+            🗑️ Vymazať túto hru
+        </button>
+        <div x-show="confirmDelete" class="bg-red-50 rounded-2xl p-4 border border-red-200 space-y-3">
+            <p class="text-sm text-red-700 font-medium">Naozaj chceš vymazať túto hru? Toto sa nedá vrátiť späť.</p>
+            <div class="flex gap-2">
+                <form method="post" action="/sessions/{{ session.id }}/delete" class="flex-1">
+                    <button type="submit" class="w-full bg-red-600 text-white py-2 rounded-xl font-semibold text-sm hover:bg-red-700 transition">
+                        Áno, vymazať
+                    </button>
+                </form>
+                <button @click="confirmDelete = false" class="flex-1 bg-gray-200 text-gray-700 py-2 rounded-xl font-semibold text-sm hover:bg-gray-300 transition">
+                    Zrušiť
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

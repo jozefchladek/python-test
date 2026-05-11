@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Profil{% endblock %}
+{% block content %}
+<div class="fade-in space-y-6">
+    <h1 class="text-2xl font-bold text-gray-800">👤 Profil</h1>
+
+    {% if error %}
+    <div class="bg-red-50 text-red-700 px-4 py-3 rounded-xl text-sm">{{ error }}</div>
+    {% endif %}
+    {% if success %}
+    <div class="bg-green-50 text-green-700 px-4 py-3 rounded-xl text-sm">{{ success }}</div>
+    {% endif %}
+
+    <!-- Invite Codes -->
+    <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 space-y-3">
+        <h2 class="text-lg font-bold text-gray-800">🎟️ Pozvánky pre kamarátov</h2>
+        <p class="text-sm text-gray-500">Zdieľaj kód alebo odkaz s kamarátmi, aby sa mohli zaregistrovať.</p>
+
+        {% for ic in invite_codes %}
+        <div class="flex items-center justify-between bg-gray-50 rounded-xl p-3">
+            {% if ic.used_by_id %}
+            <div>
+                <span class="font-mono text-sm text-gray-400 line-through">{{ ic.code }}</span>
+                <span class="text-xs text-gray-400 ml-2">Použitý{% if ic.used_by %} - {{ ic.used_by.display_name }}{% endif %}</span>
+            </div>
+            <span class="text-green-500 text-sm">✅</span>
+            {% else %}
+            <div class="flex items-center gap-2">
+                <span class="font-mono text-lg font-bold text-brand-600 tracking-widest">{{ ic.code }}</span>
+            </div>
+            <button onclick="copyInvite('{{ ic.code }}')"
+                class="bg-brand-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-brand-700 transition">
+                Kopírovať
+            </button>
+            {% endif %}
+        </div>
+        {% endfor %}
+
+        {% set available = invite_codes|selectattr('used_by_id', 'none')|list %}
+        {% if available %}
+        <p class="text-xs text-gray-400">Zostáva {{ available|length }} z {{ invite_codes|length }} pozvánok</p>
+        {% else %}
+        <p class="text-xs text-gray-400">Všetky pozvánky boli použité.</p>
+        {% endif %}
+    </div>
+
+    <form method="post" action="/profile" class="space-y-5">
+        <!-- Basic Info -->
+        <div class="space-y-4">
+            <h2 class="text-lg font-bold text-gray-800">📝 Základné údaje</h2>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Používateľské meno</label>
+                <input type="text" value="{{ user.username }}" disabled
+                    class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-100 text-gray-500">
+                <p class="text-xs text-gray-400 mt-1">Používateľské meno sa nedá zmeniť.</p>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Zobrazované meno</label>
+                <input type="text" name="display_name" required value="{{ user.display_name }}"
+                    class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">E-mail <span class="text-gray-400">(pre pozvánky)</span></label>
+                <input type="email" name="email" value="{{ user.email or '' }}" placeholder="napr. janko@email.sk"
+                    class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition">
+            </div>
+        </div>
+
+        <!-- Password Change -->
+        <div class="space-y-4">
+            <h2 class="text-lg font-bold text-gray-800">🔒 Zmena hesla <span class="text-gray-400 text-sm font-normal">(voliteľné)</span></h2>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Aktuálne heslo</label>
+                <input type="password" name="current_password"
+                    class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nové heslo</label>
+                <input type="password" name="new_password" placeholder="Minimálne 4 znaky"
+                    class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Nové heslo znova</label>
+                <input type="password" name="new_password2"
+                    class="w-full px-4 py-3 rounded-xl border border-gray-300 focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20 outline-none transition">
+            </div>
+        </div>
+
+        <button type="submit"
+            class="w-full bg-brand-600 text-white py-3 rounded-xl font-semibold hover:bg-brand-700 transition touch-target">
+            Uložiť zmeny
+        </button>
+    </form>
+</div>
+
+<script>
+function copyInvite(code) {
+    const url = '{{ app_url }}/register?code=' + code;
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(() => {
+            alert('Odkaz skopírovaný! Pošli ho kamarátovi.');
+        });
+    } else {
+        // Fallback
+        const ta = document.createElement('textarea');
+        ta.value = url;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        alert('Odkaz skopírovaný!');
+    }
+}
+</script>
+{% endblock %}

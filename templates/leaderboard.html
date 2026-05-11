@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Rebríček{% endblock %}
+{% block content %}
+<div class="fade-in space-y-6">
+    <h1 class="text-2xl font-bold text-gray-800">🏆 Rebríček</h1>
+
+    <!-- Pitch selector -->
+    <div class="flex gap-2 overflow-x-auto pb-2">
+        {% for pitch in pitches %}
+        <a href="/leaderboard?pitch_id={{ pitch.id }}"
+            class="whitespace-nowrap px-4 py-2 rounded-full text-sm font-medium transition
+            {% if selected_pitch_id|string == pitch.id|string %}bg-brand-600 text-white{% else %}bg-white text-gray-600 border border-gray-200{% endif %}">
+            {{ pitch.name }}
+        </a>
+        {% endfor %}
+    </div>
+
+    {% if not selected_pitch_id %}
+    <div class="text-center py-12">
+        <div class="text-4xl mb-3">👆</div>
+        <p class="text-gray-500">Vyber ihrisko pre zobrazenie rebríčka.</p>
+    </div>
+    {% elif not rankings %}
+    <div class="text-center py-12">
+        <div class="text-4xl mb-3">📭</div>
+        <p class="text-gray-500">Zatiaľ žiadne dokončené hry na tomto ihrisku.</p>
+    </div>
+    {% else %}
+    <p class="text-sm text-gray-500">{{ selected_pitch.name }} · Par {{ selected_pitch.holes|sum(attribute='par') }}</p>
+
+    <div class="space-y-3">
+        {% for r in rankings %}
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">
+                        {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}<span class="text-gray-400 font-bold text-lg ml-1">{{ loop.index }}.</span>{% endif %}
+                    </span>
+                    <div>
+                        <div class="font-semibold text-gray-800">{{ r.user.display_name }}</div>
+                        <div class="text-xs text-gray-500">{{ r.games }} {{ 'hra' if r.games == 1 else 'hier' if r.games >= 5 else 'hry' }}</div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-lg font-bold {% if r.avg_diff < 0 %}text-green-600{% elif r.avg_diff == 0 %}text-gray-600{% else %}text-red-500{% endif %}">
+                        {% if r.avg_diff > 0 %}+{% endif %}{{ r.avg_diff }}
+                    </div>
+                    <div class="text-xs text-gray-400">priemer {{ r.avg }}</div>
+                </div>
+            </div>
+
+            <!-- Stats row -->
+            <div class="flex gap-4 mt-3 pt-3 border-t border-gray-100">
+                <div class="text-center flex-1">
+                    <div class="text-xs text-gray-400">Najlepšie</div>
+                    <div class="font-bold text-green-600">
+                        {{ r.best }}
+                        <span class="text-xs font-normal">({% if r.best_diff > 0 %}+{% endif %}{{ r.best_diff }})</span>
+                    </div>
+                </div>
+                <div class="text-center flex-1">
+                    <div class="text-xs text-gray-400">Priemer</div>
+                    <div class="font-bold text-gray-700">{{ r.avg }}</div>
+                </div>
+                <div class="text-center flex-1">
+                    <div class="text-xs text-gray-400">Počet hier</div>
+                    <div class="font-bold text-gray-700">{{ r.games }}</div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

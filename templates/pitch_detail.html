@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}{{ pitch.name }}{% endblock %}
+{% block content %}
+<div class="fade-in space-y-6">
+    <div>
+        <a href="/pitches" class="text-brand-600 text-sm font-medium">← Späť na ihriská</a>
+        <div class="flex items-center justify-between mt-2">
+        <h1 class="text-2xl font-bold text-gray-800">{{ pitch.name }}</h1>
+        {% if pitch.created_by_id == user.id %}
+        <a href="/pitches/{{ pitch.id }}/edit" class="text-brand-600 text-sm font-medium hover:underline">✏️ Upraviť</a>
+        {% endif %}
+    </div>
+        {% if pitch.location %}
+        <p class="text-gray-500 text-sm mt-1">📍 {{ pitch.location }}</p>
+        {% endif %}
+        {% if pitch.description %}
+        <p class="text-gray-600 text-sm mt-2">{{ pitch.description }}</p>
+        {% endif %}
+    </div>
+
+    <!-- Summary -->
+    <div class="grid grid-cols-3 gap-3">
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center">
+            <div class="text-2xl font-bold text-brand-600">{{ pitch.num_holes }}</div>
+            <div class="text-xs text-gray-500">Jamiek</div>
+        </div>
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center">
+            <div class="text-2xl font-bold text-brand-600">{{ total_par }}</div>
+            <div class="text-xs text-gray-500">Celkový par</div>
+        </div>
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center">
+            <div class="text-2xl font-bold text-brand-600">{{ session_count }}</div>
+            <div class="text-xs text-gray-500">Hier</div>
+        </div>
+    </div>
+
+    <!-- Hole Details -->
+    <div>
+        <h2 class="text-lg font-bold text-gray-800 mb-3">Rozpis jamiek</h2>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full scorecard-table">
+                    <thead>
+                        <tr class="bg-gray-50 border-b border-gray-200">
+                            <th class="py-2 px-3 text-xs text-gray-500 font-medium">Jamka</th>
+                            {% for hole in pitch.holes %}
+                            <th class="py-2 px-2 text-xs text-gray-500 font-medium">{{ hole.hole_number }}</th>
+                            {% endfor %}
+                            <th class="py-2 px-3 text-xs text-gray-500 font-medium bg-gray-100">Σ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="py-2 px-3 text-sm font-medium text-gray-600">Par</td>
+                            {% for hole in pitch.holes %}
+                            <td class="py-2 px-2 text-sm text-center font-semibold text-gray-700">{{ hole.par }}</td>
+                            {% endfor %}
+                            <td class="py-2 px-3 text-sm text-center font-bold text-brand-600 bg-gray-50">{{ total_par }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="grid grid-cols-2 gap-3">
+        <a href="/sessions/new" class="bg-brand-600 text-white py-3 rounded-xl font-semibold hover:bg-brand-700 transition text-center touch-target text-sm">
+            ▶️ Začať hru
+        </a>
+        <a href="/leaderboard?pitch_id={{ pitch.id }}" class="bg-white text-brand-700 py-3 rounded-xl font-semibold border border-brand-200 hover:bg-gray-50 transition text-center touch-target text-sm">
+            🏆 Rebríček
+        </a>
+    </div>
+</div>
+{% endblock %}

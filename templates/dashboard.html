@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block title %}Prehľad{% endblock %}
+{% block content %}
+<div class="fade-in space-y-6">
+    <!-- Welcome -->
+    <div>
+        <h1 class="text-2xl font-bold text-gray-800">Ahoj, {{ user.display_name }}! 👋</h1>
+        <p class="text-gray-500 text-sm mt-1">Pripravený na ďalšiu hru?</p>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="grid grid-cols-3 gap-3">
+        <a href="/sessions/new" class="bg-brand-600 text-white rounded-2xl p-4 text-center hover:bg-brand-700 transition shadow-sm">
+            <div class="text-2xl mb-1">▶️</div>
+            <div class="font-semibold text-xs">Nová hra</div>
+        </a>
+        <a href="/sessions/join" class="bg-white text-brand-700 rounded-2xl p-4 text-center hover:bg-gray-50 transition border border-brand-200 shadow-sm">
+            <div class="text-2xl mb-1">🤝</div>
+            <div class="font-semibold text-xs">Pripojiť sa</div>
+        </a>
+        <a href="/games/plan" class="bg-white text-brand-700 rounded-2xl p-4 text-center hover:bg-gray-50 transition border border-brand-200 shadow-sm">
+            <div class="text-2xl mb-1">📅</div>
+            <div class="font-semibold text-xs">Naplánovať</div>
+        </a>
+    </div>
+
+    <!-- Stats Summary -->
+    <div class="grid grid-cols-2 gap-3">
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            <div class="text-2xl font-bold text-brand-600">{{ completed_count }}</div>
+            <div class="text-xs text-gray-500 mt-1">Odohraných hier</div>
+        </div>
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+            <div class="text-2xl font-bold text-brand-600">{{ pitches_played }}</div>
+            <div class="text-xs text-gray-500 mt-1">Ihrísk</div>
+        </div>
+    </div>
+
+    <!-- Upcoming Planned Games -->
+    {% if upcoming_games %}
+    <div>
+        <h2 class="text-lg font-bold text-gray-800 mb-3">📅 Naplánované hry</h2>
+        <div class="space-y-2">
+            {% for g in upcoming_games %}
+            <a href="/games/{{ g.id }}" class="block bg-blue-50 border border-blue-200 rounded-2xl p-4 hover:bg-blue-100 transition">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="font-semibold text-gray-800">{{ g.pitch.name }}</div>
+                        <div class="text-xs text-gray-500">
+                            📅 {{ g.planned_date.strftime('%d.%m.%Y o %H:%M') }}
+                            · {{ g.invitations|length }} pozvaných
+                        </div>
+                    </div>
+                    <div class="text-brand-600 font-semibold text-sm">Detail →</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Active Sessions -->
+    {% if active_sessions %}
+    <div>
+        <h2 class="text-lg font-bold text-gray-800 mb-3">🔴 Aktívne hry</h2>
+        <div class="space-y-2">
+            {% for s in active_sessions %}
+            <a href="/sessions/{{ s.id }}" class="block bg-amber-50 border border-amber-200 rounded-2xl p-4 hover:bg-amber-100 transition">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="font-semibold text-gray-800">{{ s.pitch.name }}</div>
+                        <div class="text-xs text-gray-500">{{ s.started_at.strftime('%d.%m.%Y %H:%M') }} · {{ s.players|length }} hráčov</div>
+                    </div>
+                    <div class="text-brand-600 font-semibold text-sm">Pokračovať →</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recent Sessions -->
+    {% if recent_sessions %}
+    <div>
+        <h2 class="text-lg font-bold text-gray-800 mb-3">📋 Posledné hry</h2>
+        <div class="space-y-2">
+            {% for s in recent_sessions %}
+            {% if s.status == 'completed' %}
+            <a href="/sessions/{{ s.id }}" class="block bg-white rounded-2xl p-4 shadow-sm border border-gray-100 hover:border-brand-300 transition">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="font-semibold text-gray-800">{{ s.pitch.name }}</div>
+                        <div class="text-xs text-gray-500">{{ s.started_at.strftime('%d.%m.%Y') }} · {{ s.players|length }} hráčov</div>
+                    </div>
+                    <div class="text-gray-400 text-sm">✅</div>
+                </div>
+            </a>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if not recent_sessions and not active_sessions and not upcoming_games %}
+    <div class="text-center py-8">
+        <div class="text-4xl mb-3">⛳</div>
+        <p class="text-gray-500">Zatiaľ žiadne hry.</p>
+        <p class="text-gray-400 text-sm mt-1">Začni novou hrou alebo naplánuj ďalšiu!</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

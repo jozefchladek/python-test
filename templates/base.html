@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="sk" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#059669">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="apple-touch-icon" href="/static/icon-192.png">
+    <title>{% block title %}Footgolfisti{% endblock %} ⚽🏌️</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="/static/style.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="h-full bg-gray-50" x-data="{ menuOpen: false }">
+    {% if user is defined and user %}
+    <!-- Top Navigation -->
+    <header class="bg-brand-600 text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-lg mx-auto px-4 py-3 flex items-center justify-between">
+            <a href="/" class="text-lg font-bold tracking-tight">⚽ Footgolfisti</a>
+            <div class="flex items-center gap-3">
+                {% if user.is_admin %}
+                <a href="/admin-panel" class="text-xs bg-brand-700 text-brand-100 hover:text-white px-2 py-1 rounded-lg">Admin</a>
+                {% endif %}
+                <a href="/profile" class="text-sm text-brand-100 hover:text-white">{{ user.display_name }}</a>
+                <a href="/logout" class="text-brand-200 hover:text-white text-sm">Odhlásiť</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Offline Banner -->
+    <div id="offline-banner" class="hidden bg-yellow-500 text-white text-center text-sm py-2 px-4">
+        Ste offline - skóre sa uloží lokálne a odošle po pripojení
+    </div>
+    <!-- Offline Toast -->
+    <div id="offline-toast" class="hidden fixed top-16 left-1/2 -translate-x-1/2 bg-yellow-500 text-white px-4 py-2 rounded-xl shadow-lg text-sm z-50">
+        Skóre uložené offline
+    </div>
+
+    <!-- Main Content -->
+    <main class="max-w-lg mx-auto px-4 py-6 pb-24">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50">
+        <div class="max-w-lg mx-auto flex justify-around py-2">
+            <a href="/" class="flex flex-col items-center gap-1 px-3 py-1 text-xs {% if request.url.path == '/' %}text-brand-600 font-semibold{% else %}text-gray-500{% endif %}">
+                <span class="text-lg">🏠</span>
+                Prehľad
+            </a>
+            <a href="/pitches" class="flex flex-col items-center gap-1 px-3 py-1 text-xs {% if '/pitches' in request.url.path %}text-brand-600 font-semibold{% else %}text-gray-500{% endif %}">
+                <span class="text-lg">⛳</span>
+                Ihriská
+            </a>
+            <a href="/sessions/new" class="flex flex-col items-center gap-1 px-3 py-1 text-xs {% if '/sessions/new' in request.url.path %}text-brand-600 font-semibold{% else %}text-gray-500{% endif %}">
+                <span class="text-xl -mt-3 bg-brand-600 text-white rounded-full w-12 h-12 flex items-center justify-center shadow-lg">▶️</span>
+                Nová hra
+            </a>
+            <a href="/history" class="flex flex-col items-center gap-1 px-3 py-1 text-xs {% if '/history' in request.url.path %}text-brand-600 font-semibold{% else %}text-gray-500{% endif %}">
+                <span class="text-lg">📋</span>
+                História
+            </a>
+            <a href="/stats" class="flex flex-col items-center gap-1 px-3 py-1 text-xs {% if '/stats' in request.url.path %}text-brand-600 font-semibold{% else %}text-gray-500{% endif %}">
+                <span class="text-lg">📊</span>
+                Štatistiky
+            </a>
+        </div>
+    </nav>
+    {% else %}
+    <main class="min-h-screen flex items-center justify-center px-4">
+        {% block auth_content %}{% endblock %}
+    </main>
+    {% endif %}
+<script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/static/sw.js');
+    // Replay pending offline scores when back online
+    window.addEventListener('online', function() {
+        navigator.serviceWorker.ready.then(function(reg) {
+            reg.active.postMessage('replay-pending-scores');
+        });
+        const banner = document.getElementById('offline-banner');
+        if (banner) banner.classList.add('hidden');
+    });
+    window.addEventListener('offline', function() {
+        const banner = document.getElementById('offline-banner');
+        if (banner) banner.classList.remove('hidden');
+    });
+    // Listen for offline save notifications from service worker
+    navigator.serviceWorker.addEventListener('message', function(event) {
+        if (event.data && event.data.type === 'score-saved-offline') {
+            const toast = document.getElementById('offline-toast');
+            if (toast) { toast.classList.remove('hidden'); setTimeout(() => toast.classList.add('hidden'), 3000); }
+        }
+    });
+}
+// Auto-inject CSRF token into all forms
+function getCookie(name) {
+    const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+    return match ? decodeURIComponent(match[2]) : '';
+}
+document.addEventListener('DOMContentLoaded', function() {
+    const token = getCookie('csrf_token');
+    if (!token) {
+        // Generate and set a CSRF cookie if missing (first visit)
+        const newToken = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substr(2);
+        document.cookie = 'csrf_token=' + newToken + '; path=/; samesite=strict; max-age=' + (60*60*24*90);
+    }
+    document.querySelectorAll('form[method="post"]').forEach(function(form) {
+        if (!form.querySelector('input[name="_csrf_token"]')) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = '_csrf_token';
+            input.value = getCookie('csrf_token');
+            form.appendChild(input);
+        }
+    });
+});
+</script>
+</body>
+</html>

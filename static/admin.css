@@ -1,0 +1,231 @@
+/* Footgolfisti Admin - Brand Override for SQLAdmin/Tabler */
+
+/* Primary brand color overrides */
+:root {
+    --tblr-primary: #059669 !important;
+    --tblr-primary-rgb: 5, 150, 105 !important;
+    --tblr-font-sans-serif: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Sidebar - green brand */
+.navbar.navbar-vertical {
+    background-color: #065f46 !important;
+}
+
+.navbar.navbar-vertical .navbar-brand a h3 {
+    color: white !important;
+    font-size: 1.1rem;
+}
+
+/* Sidebar nav links */
+.navbar-vertical .nav-link {
+    color: rgba(255, 255, 255, 0.75) !important;
+    border-radius: 0.5rem;
+    margin: 2px 8px;
+}
+
+.navbar-vertical .nav-link:hover {
+    color: white !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.navbar-vertical .nav-link.active {
+    color: white !important;
+    background-color: #059669 !important;
+}
+
+.navbar-vertical .nav-link .nav-link-icon {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.navbar-vertical .nav-link:hover .nav-link-icon,
+.navbar-vertical .nav-link.active .nav-link-icon {
+    color: white !important;
+}
+
+/* Logout button */
+.navbar-vertical .btn-secondary {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+    border-radius: 0.5rem;
+}
+
+.navbar-vertical .btn-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+}
+
+/* Page background */
+.page-wrapper {
+    background-color: #f9fafb;
+}
+
+/* Primary buttons */
+.btn-primary,
+a.btn-primary {
+    background-color: #059669 !important;
+    border-color: #059669 !important;
+    border-radius: 0.75rem !important;
+}
+
+.btn-primary:hover,
+a.btn-primary:hover {
+    background-color: #047857 !important;
+    border-color: #047857 !important;
+}
+
+.btn-outline-primary {
+    color: #059669 !important;
+    border-color: #059669 !important;
+    border-radius: 0.75rem !important;
+}
+
+.btn-outline-primary:hover {
+    background-color: #059669 !important;
+    border-color: #059669 !important;
+    color: white !important;
+}
+
+/* Secondary buttons */
+.btn-secondary {
+    border-radius: 0.75rem !important;
+}
+
+/* Links */
+.page-wrapper a:not(.btn):not(.nav-link):not(.page-link) {
+    color: #059669;
+}
+
+.page-wrapper a:not(.btn):not(.nav-link):not(.page-link):hover {
+    color: #047857;
+}
+
+/* Table header links (sortable columns) */
+th a {
+    color: #059669 !important;
+}
+
+/* Cards */
+.card {
+    border-radius: 1rem !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.card-header {
+    border-radius: 1rem 1rem 0 0 !important;
+}
+
+/* Form controls */
+.form-control:focus,
+.form-select:focus {
+    border-color: #10b981 !important;
+    box-shadow: 0 0 0 0.25rem rgba(5, 150, 105, 0.15) !important;
+}
+
+.form-control,
+.form-select {
+    border-radius: 0.75rem !important;
+}
+
+/* Pagination */
+.page-item.active .page-link {
+    background-color: #059669 !important;
+    border-color: #059669 !important;
+}
+
+.page-link {
+    color: #059669 !important;
+    border-radius: 0.5rem !important;
+}
+
+/* Table */
+.table-hover tbody tr:hover {
+    background-color: #ecfdf5 !important;
+}
+
+.table th {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+}
+
+/* Checkboxes/switches */
+.form-check-input:checked {
+    background-color: #059669 !important;
+    border-color: #059669 !important;
+}
+
+/* Badge */
+.badge.bg-primary {
+    background-color: #059669 !important;
+}
+
+/* Select2 (dropdowns) */
+.select2-container--default .select2-selection--single:focus,
+.select2-container--default.select2-container--focus .select2-selection--multiple {
+    border-color: #10b981 !important;
+    box-shadow: 0 0 0 0.25rem rgba(5, 150, 105, 0.15) !important;
+}
+
+.select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+    background-color: #059669 !important;
+}
+
+/* Page title */
+.page-title {
+    font-weight: 700;
+    color: #1f2937;
+}
+
+/* Detail view action buttons */
+.btn-info {
+    background-color: #059669 !important;
+    border-color: #059669 !important;
+}
+
+.btn-info:hover {
+    background-color: #047857 !important;
+    border-color: #047857 !important;
+}
+
+/* Nav pills */
+.nav-pills .nav-link.active {
+    background-color: #059669 !important;
+}
+
+/* Progress bar */
+.progress-bar {
+    background-color: #059669 !important;
+}
+
+/* Scrollbar for sidebar */
+.navbar-vertical::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+/* Actions column icons */
+.btn-outline-secondary {
+    border-radius: 0.5rem !important;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #ecfdf5 !important;
+    color: #059669 !important;
+    border-color: #059669 !important;
+}
+
+/* Export button */
+.btn-success {
+    background-color: #059669 !important;
+    border-color: #059669 !important;
+    border-radius: 0.75rem !important;
+}
+
+.btn-success:hover {
+    background-color: #047857 !important;
+    border-color: #047857 !important;
+}

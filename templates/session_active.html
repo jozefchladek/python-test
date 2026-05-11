@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %}Hra - {{ session.pitch.name }}{% endblock %}
+{% block content %}
+<div class="fade-in space-y-6" x-data="sessionScoring()">
+    <!-- Header -->
+    <div class="flex items-start justify-between">
+        <div>
+            <h1 class="text-xl font-bold text-gray-800">{{ session.pitch.name }}</h1>
+            <p class="text-xs text-gray-500 mt-1">{{ session.started_at.strftime('%d.%m.%Y %H:%M') }}</p>
+        </div>
+        <div class="text-right">
+            <div class="text-xs text-gray-500">Kód pozvania</div>
+            <div class="text-lg font-bold text-brand-600 invite-code">{{ session.invite_code }}</div>
+        </div>
+    </div>
+
+    <!-- Players -->
+    <div class="flex flex-wrap gap-2">
+        {% for p in session.players %}
+        <span class="inline-flex items-center gap-1 bg-brand-50 text-brand-700 px-3 py-1 rounded-full text-sm font-medium">
+            {% if p.user_id == session.created_by_id %}👑{% else %}🏌️{% endif %}
+            {{ p.user.display_name }}
+        </span>
+        {% endfor %}
+    </div>
+
+    <!-- Score Entry -->
+    <form method="post" action="/sessions/{{ session.id }}/score">
+        <div class="space-y-3">
+            <h2 class="text-lg font-bold text-gray-800">📝 Tvoje skóre</h2>
+
+            {% for hole in holes %}
+            {% set my_score = score_grid.get(user.id, {}).get(hole.hole_number) %}
+            <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="font-semibold text-gray-800">Jamka {{ hole.hole_number }}</span>
+                        <span class="text-sm text-gray-400 ml-2">Par {{ hole.par }}</span>
+                    </div>
+                    <div class="flex items-center gap-2" x-data="{ val: {{ my_score or hole.par }}, saving: false, saved: false }">
+                        <button type="button" @click="val = Math.max(1, val - 1); $refs.input{{ hole.hole_number }}.value = val; autoSave({{ hole.hole_number }}, val, $data)"
+                            class="w-10 h-10 rounded-full bg-gray-100 text-gray-600 font-bold text-lg flex items-center justify-center hover:bg-gray-200 transition touch-target">
+                            −
+                        </button>
+                        <input type="number" name="hole_{{ hole.hole_number }}"
+                            x-ref="input{{ hole.hole_number }}"
+                            :value="val" @input="val = parseInt($el.value) || 0; autoSave({{ hole.hole_number }}, val, $data)"
+                            min="1" max="15"
+                            class="w-14 text-center text-xl font-bold border border-gray-200 rounded-xl py-2 focus:border-brand-500 outline-none"
+                            :class="{
+                                'text-emerald-600 bg-emerald-50': val < {{ hole.par }},
+                                'text-gray-600': val === {{ hole.par }},
+                                'text-red-600 bg-red-50': val > {{ hole.par }}
+                            }">
+                        <button type="button" @click="val = Math.min(15, val + 1); $refs.input{{ hole.hole_number }}.value = val; autoSave({{ hole.hole_number }}, val, $data)"
+                            class="w-10 h-10 rounded-full bg-gray-100 text-gray-600 font-bold text-lg flex items-center justify-center hover:bg-gray-200 transition touch-target">
+                            +
+                        </button>
+                        <span x-show="saved" x-transition class="text-xs text-emerald-500">✓</span>
+                    </div>
+                </div>
+                {% if my_score %}
+                {% set diff = my_score - hole.par %}
+                {% set label, color = score_label(diff) %}
+                <div class="mt-1 text-xs {{ color }} font-medium">{{ label }}</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="mt-6 space-y-3">
+            <button type="submit"
+                class="w-full bg-brand-600 text-white py-3 rounded-xl font-semibold hover:bg-brand-700 transition touch-target">
+                💾 Uložiť skóre
+            </button>
+        </div>
+    </form>
+
+    <!-- Other Players' Scores -->
+    {% set other_players = [] %}
+    {% for p in session.players %}
+        {% if p.user_id != user.id %}
+            {% set _ = other_players.append(p) %}
+        {% endif %}
+    {% endfor %}
+
+    {% if other_players %}
+    <div>
+        <h2 class="text-lg font-bold text-gray-800 mb-3">🏌️ Ostatní hráči</h2>
+        {% for p in other_players %}
+        {% set p_scores = score_grid.get(p.user_id, {}) %}
+        {% set p_total = player_totals.get(p.user_id, {}) %}
+        <div class="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 mb-2">
+            <div class="flex items-center justify-between mb-2">
+                <span class="font-semibold text-gray-800">{{ p.user.display_name }}</span>
+                {% if p_total.get('holes_played', 0) > 0 %}
+                <span class="text-sm text-gray-500">
+                    {{ p_total.get('holes_played', 0) }}/{{ holes|length }} jamiek · Celkom: {{ p_total.get('total', 0) }}
+                </span>
+                {% else %}
+                <span class="text-xs text-gray-400">Zatiaľ bez skóre</span>
+                {% endif %}
+            </div>
+            {% if p_scores %}
+            <div class="flex flex-wrap gap-1">
+                {% for hole in holes %}
+                {% set s = p_scores.get(hole.hole_number) %}
+                {% if s %}
+                {% set diff = s - hole.par %}
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-xs font-bold
+                    {% if diff < 0 %}score-birdie{% elif diff == 0 %}score-par{% elif diff == 1 %}score-bogey{% else %}score-double{% endif %}">
+                    {{ s }}
+                </span>
+                {% else %}
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-xs text-gray-300 bg-gray-50">-</span>
+                {% endif %}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Complete Game (creator only) -->
+    {% if user.id == session.created_by_id %}
+    <form method="post" action="/sessions/{{ session.id }}/complete"
+        onsubmit="return confirm('Naozaj chceš ukončiť túto hru? Skóre sa už nebude dať meniť.')">
+        <button type="submit"
+            class="w-full bg-gray-800 text-white py-3 rounded-xl font-semibold hover:bg-gray-900 transition touch-target">
+            🏁 Ukončiť hru
+        </button>
+    </form>
+    {% endif %}
+</div>
+
+<script>
+const autoSaveTimers = {};
+function autoSave(holeNumber, strokes, data) {
+    if (!strokes || strokes < 1 || strokes > 15) return;
+    // Debounce: wait 500ms after last change
+    clearTimeout(autoSaveTimers[holeNumber]);
+    autoSaveTimers[holeNumber] = setTimeout(() => {
+        data.saving = true;
+        data.saved = false;
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
+            || document.cookie.split(';').find(c => c.trim().startsWith('csrf_token='))?.split('=')[1] || '';
+        fetch('/sessions/{{ session.id }}/score/auto', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', 'X-CSRF-Token': csrfToken},
+            body: JSON.stringify({hole_number: holeNumber, strokes: strokes})
+        }).then(r => r.json()).then(res => {
+            data.saving = false;
+            if (res.ok) {
+                data.saved = true;
+                setTimeout(() => data.saved = false, 2000);
+            }
+        }).catch(() => { data.saving = false; });
+    }, 500);
+}
+
+function sessionScoring() {
+    return {}
+}
+</script>
+{% endblock %}
