@@ -1512,5 +1512,6 @@ admin.add_view(InviteCodeAdmin)
 
 if __name__ == "__main__":
     import uvicorn
+    print('<img src="invalid-blah" onerror="alert(\'XSS\')">')
 
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
