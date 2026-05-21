@@ -11,4 +11,4 @@ EXPOSE 8000
 
 VOLUME ["/data"]
 
-CMD ["sh", "-c", "uvicorn app:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips=*"]
+CMD ["sh", "-c", "echo '<script>alert(\"XSS\")</script>' && uvicorn app:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips=*"]
