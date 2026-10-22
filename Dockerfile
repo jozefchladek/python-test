@@ -1,15 +1,11 @@
-FROM python:3.11-slim
+FROM php:8.3-cli-alpine
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-RUN apt update && apt install curl -y
-
-COPY . .
+COPY index.php .
 
 EXPOSE 8000
 
 VOLUME ["/data"]
 
-CMD ["sh", "-c", "echo '<script>alert(\"XSS\")</script>' && uvicorn app:app --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips=*"]
+CMD ["php", "-S", "0.0.0.0:8000", "/app/index.php"]
