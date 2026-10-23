@@ -15,6 +15,7 @@ file_put_contents($counterFile, (string) $count);
 
 header('Content-Type: text/plain; charset=utf-8');
 
+echo 'Im running on php version: ' . phpversion();
 echo print_r($_ENV, true);
 echo "Hello from GHCR test image!\n";
 echo "Hit count (persisted in /data volume): {$count}\n";
