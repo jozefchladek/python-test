@@ -2,7 +2,7 @@ FROM php:8.3-cli-alpine
 
 WORKDIR /app
 
-COPY index.php .
+COPY . .
 
 EXPOSE 8000
 

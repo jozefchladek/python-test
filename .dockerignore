@@ -1,0 +1,6 @@
+.git
+.github
+.idea
+.env
+node_modules
+*.md
