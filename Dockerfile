@@ -6,7 +6,7 @@ COPY . .
 
 EXPOSE 8000
 
-RUN echo 'AHAHAHAHdasdAssaHA'
+RUN echo 'AHAHAHasdAHdasdAssaHA'
 
 VOLUME ["/data"]
 
