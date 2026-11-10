@@ -4,9 +4,6 @@ WORKDIR /app
 
 COPY . .
 
-#todo remove
-RUN exit 1
-
 EXPOSE 8000
 
 VOLUME ["/data"]
