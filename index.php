@@ -13,7 +13,7 @@ if (file_exists($counterFile)) {
 $count++;
 file_put_contents($counterFile, (string) $count);
 
-header('Content-Type: text/plain; charset=utf-8');
+header('Content-Type: text/html; charset=utf-8');
 
 echo 'Im running on php version: ' . phpversion() . "\n";
 echo print_r($_ENV, true);
