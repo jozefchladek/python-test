@@ -19,6 +19,5 @@ echo 'Im running on php version: ' . phpversion() . "\n";
 echo print_r($_ENV, true);
 echo "Hello from GHCR test image!\n";
 echo "Hit count (persisted in /data volume): {$count}\n";
-
 echo 'Time: ' . gmdate('c') . "\n";
 phpinfo();
